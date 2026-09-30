@@ -1,7 +1,6 @@
 """Fase 9 (spot) - Paper trading de la tendencia long/flat en SPOT 1d.
 
-Estrategia: SMA 20/50 long-only sobre BTC spot. Sin short, sin apalancamiento,
-amigable con capital chico (paso spot ~$0,83). Log en paper_log_spot.csv.
+Aplica el overlay de riesgo RECOMENDADO: sizing 50% + entrada escalonada (1/3).
 
 Uso:
     py -m src.paper_spot
@@ -14,6 +13,7 @@ import pandas as pd
 from .baselines import sma_cross_signal
 from .config import get_paths, load_config
 from .paper import detect_exchange, fetch
+from .risk import overlay_step
 
 FROZEN = {"timeframe": "1d", "fast": 20, "slow": 50, "initial_capital": 100.0}
 
@@ -25,26 +25,28 @@ def main() -> None:
     slip = cfg["backtest"]["slippage"]
 
     ex, quote = detect_exchange(FROZEN["timeframe"])
-    print(f"Exchange: {ex.id} (quote {quote})")
     btc = fetch(ex, f"BTC/{quote}", FROZEN["timeframe"])
     trend = sma_cross_signal(btc, FROZEN["fast"], FROZEN["slow"])
 
     bar = btc.index[-1]
-    pos = float(trend.iloc[-1])
     price = float(btc["close"].iloc[-1])
-    print(f"Corrida: {datetime.now():%Y-%m-%d %H:%M} | ultima vela diaria: {bar}")
-    print(f"BTC={price:.1f} | posicion objetivo (0/1): {pos:.0f}")
+    print(f"Corrida: {datetime.now():%Y-%m-%d %H:%M} | exchange {ex.id} | vela {bar}")
 
     prev = pd.read_csv(log_path) if log_path.exists() else pd.DataFrame()
     if not prev.empty and str(prev["bar"].iloc[-1]) == str(bar):
         print(f"Sin vela nueva ({bar}); nada que registrar.")
         return
+
+    prev_pos = float(prev["pos_btc"].iloc[-1]) if not prev.empty else 0.0
+    pos = overlay_step(prev_pos, float(trend.iloc[-1]))
+    print(f"BTC={price:.1f} | posicion gestionada (0..0.5): {pos:.3f} "
+          f"(target crudo {float(trend.iloc[-1]):.0f})")
+
     equity = FROZEN["initial_capital"] if prev.empty else float(prev["equity"].iloc[-1])
     if not prev.empty:
-        p0 = prev.iloc[-1]
-        ret = price / p0["price_btc"] - 1
-        turn = abs(pos - p0["pos_btc"])
-        step = p0["pos_btc"] * ret - turn * (fee + slip)
+        ret = price / prev["price_btc"].iloc[-1] - 1
+        turn = abs(pos - prev_pos)
+        step = prev_pos * ret - turn * (fee + slip)
         equity *= (1 + step)
         print(f"P&L del tramo: {step:+.3%} | equity simulada: {equity:,.2f}")
 

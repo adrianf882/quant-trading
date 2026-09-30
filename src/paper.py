@@ -1,16 +1,15 @@
 """Fase 9 - Paper trading del Portfolio B-Kalman (dinero SIMULADO, datos reales).
 
-Cada corrida:
-  1) detecta un exchange accesible y descarga las ultimas velas 4h de BTC y ETH
-     (descarta la vela en curso);
-  2) reconstruye la configuracion CONGELADA (regimen sticky + tendencia + par-Kalman);
-  3) calcula la posicion objetivo de la ultima vela cerrada;
+Aplica el overlay de riesgo RECOMENDADO: sizing 50% del capital + entrada
+escalonada (1/3 por vela). NO usa cortacircuito de drawdown ni vol-sizing.
+
+Cada corrida (si hay vela nueva):
+  1) detecta un exchange accesible y descarga las ultimas velas 4h de BTC y ETH;
+  2) reconstruye la config CONGELADA (regimen sticky + tendencia + par-Kalman);
+  3) calcula la posicion objetivo gestionada de la ultima vela cerrada;
   4) actualiza el P&L simulado y registra en CSV.
 
-Se prueba una lista de exchanges porque Binance bloquea por geolocalizacion en
-algunos datacenters (p. ej. runners de GitHub Actions -> HTTP 451).
-
-No opera dinero real. Uso:
+Uso:
     py -m src.paper
 """
 import sys
@@ -21,6 +20,7 @@ import pandas as pd
 from .config import get_paths, load_config
 from .data import make_exchange
 from .portfolio import build_signals, sticky_bull
+from .risk import overlay_step
 
 FROZEN = {"timeframe": "4h", "window": 84, "band": 0.02, "fast": 20, "slow": 50,
           "hedge": "kalman", "initial_capital": 10000.0}
@@ -55,7 +55,6 @@ def main() -> None:
     slip = cfg["backtest"]["slippage"]
 
     ex, quote = detect_exchange(FROZEN["timeframe"])
-    print(f"Exchange: {ex.id} (quote {quote})")
     btc = fetch(ex, f"BTC/{quote}", FROZEN["timeframe"])
     eth = fetch(ex, f"ETH/{quote}", FROZEN["timeframe"])
     common = btc.index.intersection(eth.index)
@@ -63,28 +62,31 @@ def main() -> None:
 
     bull = sticky_bull(y, 200, FROZEN["band"])
     sb, se, _, _, _ = build_signals(y, x, FROZEN["window"], bull,
-                                    FROZEN["fast"], FROZEN["slow"],
-                                    hedge=FROZEN["hedge"])
+                                    FROZEN["fast"], FROZEN["slow"], hedge=FROZEN["hedge"])
     bar = y.index[-1]
-    pos_btc, pos_eth = float(sb.iloc[-1]), float(se.iloc[-1])
     regime = "alcista" if bool(bull.iloc[-1]) else "no alcista"
     price_btc, price_eth = float(y["close"].iloc[-1]), float(x["close"].iloc[-1])
 
-    print(f"Corrida: {datetime.now():%Y-%m-%d %H:%M} | ultima vela cerrada: {bar}")
-    print(f"Regimen: {regime} | BTC={price_btc:.1f} ETH={price_eth:.1f}")
-    print(f"Posicion objetivo -> BTC: {pos_btc:+.3f} | ETH: {pos_eth:+.3f}")
-
+    print(f"Corrida: {datetime.now():%Y-%m-%d %H:%M} | exchange {ex.id} | vela {bar}")
     prev = pd.read_csv(log_path) if log_path.exists() else pd.DataFrame()
     if not prev.empty and str(prev["bar"].iloc[-1]) == str(bar):
         print(f"Sin vela nueva ({bar}); nada que registrar.")
         return
+
+    prev_b = float(prev["pos_btc"].iloc[-1]) if not prev.empty else 0.0
+    prev_e = float(prev["pos_eth"].iloc[-1]) if not prev.empty else 0.0
+    pos_btc = overlay_step(prev_b, float(sb.iloc[-1]))
+    pos_eth = overlay_step(prev_e, float(se.iloc[-1]))
+    print(f"Regimen: {regime} | BTC={price_btc:.1f} ETH={price_eth:.1f}")
+    print(f"Posicion gestionada -> BTC: {pos_btc:+.3f} | ETH: {pos_eth:+.3f} "
+          f"(target crudo {float(sb.iloc[-1]):+.3f}/{float(se.iloc[-1]):+.3f})")
+
     equity = FROZEN["initial_capital"] if prev.empty else float(prev["equity"].iloc[-1])
-    if not prev.empty and str(prev["bar"].iloc[-1]) != str(bar):
-        p0 = prev.iloc[-1]
-        ret_btc = price_btc / p0["price_btc"] - 1
-        ret_eth = price_eth / p0["price_eth"] - 1
-        turn = abs(pos_btc - p0["pos_btc"]) + abs(pos_eth - p0["pos_eth"])
-        step = p0["pos_btc"] * ret_btc + p0["pos_eth"] * ret_eth - turn * (fee + slip)
+    if not prev.empty:
+        ret_btc = price_btc / prev["price_btc"].iloc[-1] - 1
+        ret_eth = price_eth / prev["price_eth"].iloc[-1] - 1
+        turn = abs(pos_btc - prev_b) + abs(pos_eth - prev_e)
+        step = prev_b * ret_btc + prev_e * ret_eth - turn * (fee + slip)
         equity *= (1 + step)
         print(f"P&L del tramo: {step:+.3%} | equity simulada: {equity:,.2f}")
 

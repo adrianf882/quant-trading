@@ -27,6 +27,18 @@ from .portfolio import build_signals, sticky_bull
 from .small_capital import (FILTERS, FEE, SLIP, FUNDING_8H, SPOT_FILTERS, floor_step)
 
 BASE = {"size": 1.0, "step": 1.0, "dd": 0.0, "recover": 0.0, "vol": False}
+
+# Overlay RECOMENDADO (aplicado al paper trading): sizing 50% + entrada escalonada.
+SIZE_FRAC = 0.5
+ENTRY_STEP = 1 / 3
+
+
+def overlay_step(prev, target, size=SIZE_FRAC, step=ENTRY_STEP):
+    """Posicion gestionada: objetivo escalado por `size`, acercandose <= `step` por vela."""
+    goal = float(target) * size
+    return float(prev + np.clip(goal - prev, -step, step))
+
+
 CONFIGS = [
     ("base (sin overlay)", {}),
     ("+sizing 50%", {"size": 0.5}),
