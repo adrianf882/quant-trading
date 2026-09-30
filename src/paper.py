@@ -50,7 +50,7 @@ def fetch(ex, symbol: str, timeframe: str, n: int = 1000) -> pd.DataFrame:
 
 def main() -> None:
     cfg = load_config()
-    log_path = get_paths()["experiments"] / "paper_log.csv"
+    log_path = get_paths()["experiments"] / "paper_log_futures.csv"
     fee = cfg["backtest"]["fee"]
     slip = cfg["backtest"]["slippage"]
 
@@ -75,6 +75,9 @@ def main() -> None:
     print(f"Posicion objetivo -> BTC: {pos_btc:+.3f} | ETH: {pos_eth:+.3f}")
 
     prev = pd.read_csv(log_path) if log_path.exists() else pd.DataFrame()
+    if not prev.empty and str(prev["bar"].iloc[-1]) == str(bar):
+        print(f"Sin vela nueva ({bar}); nada que registrar.")
+        return
     equity = FROZEN["initial_capital"] if prev.empty else float(prev["equity"].iloc[-1])
     if not prev.empty and str(prev["bar"].iloc[-1]) != str(bar):
         p0 = prev.iloc[-1]

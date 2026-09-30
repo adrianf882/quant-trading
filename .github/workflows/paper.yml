@@ -23,12 +23,14 @@ jobs:
           cache: pip
       - name: Instalar dependencias
         run: pip install -r requirements.txt
-      - name: Correr paper trading (simulado)
+      - name: Paper futures (B-Kalman 4h)
         run: python -m src.paper
-      - name: Guardar log
+      - name: Paper spot (tendencia 1d)
+        run: python -m src.paper_spot
+      - name: Guardar logs
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add experiments/paper_log.csv
-          git commit -m "paper trading: actualiza log" || echo "sin cambios"
+          git add experiments/paper_log_futures.csv experiments/paper_log_spot.csv
+          git commit -m "paper trading: actualiza logs" || echo "sin cambios"
           git push
