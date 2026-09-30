@@ -136,3 +136,21 @@ Pensado para correr cada 4h (Programador de tareas). **Sin dinero real.**
 
 Caveat final: la config salió de muchas pruebas; el holdout ya se usó. Los
 resultados son el **mejor caso plausible**, a confirmar en paper trading real.
+
+## 10. Revisión a la luz de Jansen (*ML for Algorithmic Trading*, 2ª ed.)
+
+| Test (Jansen) | Resultado | Veredicto |
+|---|---|---|
+| **IC de features** (Spearman vs retorno siguiente) | \|IC\| ≤ 0,055 (1d), ≤ 0,08 (4h); ninguna feature con capacidad predictiva | features sin señal |
+| **Ensemble** (RF + GBM + LightGBM) vs LightGBM solo | accuracy 0,37 vs 0,36 (1d); 0,42 vs 0,42 (4h); Sharpe sin mejora | ensemble no ayuda |
+
+**Conclusión:** el pipeline de Jansen (ensembles, IC) **confirma** lo ya visto: **no
+hay edge en el ML direccional sobre precio**. Las herramientas no cambian el
+resultado; el hallazgo es robusto a los tres libros (Chan, Prado, Jansen).
+
+## 11. Infraestructura
+
+- Repositorio privado: https://github.com/adrianf882/quant-trading
+- **Paper trading desatendido** vía GitHub Actions (`.github/workflows/paper.yml`):
+  corre `src/paper.py` cada 4h y commitea `experiments/paper_log.csv`. Sin API keys
+  (solo datos públicos) → riesgo financiero nulo en esta etapa.

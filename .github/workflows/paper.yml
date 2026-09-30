@@ -1,0 +1,29 @@
+name: paper-trading
+
+on:
+  schedule:
+    - cron: "0 */4 * * *"   # cada 4 horas (UTC)
+  workflow_dispatch:         # permite correrlo a mano
+
+permissions:
+  contents: write
+
+jobs:
+  paper:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+      - name: Correr paper trading (simulado)
+        run: python -m src.paper
+      - name: Guardar log
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add experiments/paper_log.csv
+          git commit -m "paper trading: actualiza log" || echo "sin cambios"
+          git push

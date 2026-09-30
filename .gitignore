@@ -17,6 +17,7 @@ data/processed/*
 !data/processed/.gitkeep
 experiments/*
 !experiments/.gitkeep
+!experiments/paper_log.csv
 
 # Libros de referencia (contenido con derechos de autor)
 reference/*.epub
