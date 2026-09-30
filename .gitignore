@@ -1,0 +1,27 @@
+# Entorno virtual
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Datos y artefactos (no versionar)
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+experiments/*
+!experiments/.gitkeep
+
+# Libros de referencia (contenido con derechos de autor)
+reference/*.epub
+reference/*.txt
+
+# Varios
+.DS_Store
+Thumbs.db

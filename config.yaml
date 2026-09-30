@@ -1,0 +1,33 @@
+data:
+  symbol: "BTC/USDT"
+  timeframe: "1h"
+  since: "2019-01-01T00:00:00Z"
+  exchange: "binance"
+
+labels:
+  # k: ancho de barrera en unidades de sigma del horizonte (vol_vela*sqrt(horizon)).
+  # k=1.0 da una distribucion de etiquetas balanceada (~30/39/30); k=2.0 daria
+  # ~76% de vencimientos. Se eligio por balance de clases, no por performance.
+  k: 1.0
+  horizon: 24
+  vol_window: 24
+
+model:
+  type: lightgbm
+  params:
+    n_estimators: 300
+    max_depth: 4
+    learning_rate: 0.03
+    subsample: 0.8
+    colsample_bytree: 0.8
+    reg_lambda: 5.0
+
+validation:
+  n_splits: 5
+  embargo_pct: 0.01
+  holdout_pct: 0.2
+
+backtest:
+  fee: 0.001
+  slippage: 0.0005
+  initial_capital: 10000
