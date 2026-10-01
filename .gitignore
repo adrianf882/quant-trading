@@ -19,6 +19,7 @@ experiments/*
 !experiments/.gitkeep
 !experiments/paper_log_futures.csv
 !experiments/paper_log_spot.csv
+!experiments/paper_log_carry.csv
 
 # Libros de referencia (contenido con derechos de autor)
 reference/*.epub

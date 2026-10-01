@@ -23,7 +23,7 @@ from .portfolio import build_signals, sticky_bull
 from .risk import overlay_step
 
 FROZEN = {"timeframe": "4h", "window": 84, "band": 0.02, "fast": 20, "slow": 50,
-          "hedge": "kalman", "initial_capital": 10000.0}
+          "hedge": "kalman", "initial_capital": 1000.0}
 OHLCV = ["open", "high", "low", "close", "volume"]
 CANDIDATES = [("binance", "USDT"), ("kraken", "USD"), ("coinbase", "USD"), ("okx", "USDT")]
 
