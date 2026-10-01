@@ -50,8 +50,11 @@ def main() -> None:
         equity *= (1 + step)
         print(f"P&L del tramo: {step:+.3%} | equity simulada: {equity:,.2f}")
 
+    invested = pos * equity          # spot long, sin apalancar
+    liquidity = equity - invested
     record = {"run_at": datetime.now().isoformat(timespec="seconds"), "bar": str(bar),
-              "exchange": ex.id, "pos_btc": pos, "price_btc": price, "equity": equity}
+              "exchange": ex.id, "pos_btc": pos, "price_btc": price, "equity": equity,
+              "invested": invested, "liquidity": liquidity}
     pd.concat([prev, pd.DataFrame([record])]).to_csv(log_path, index=False)
     print(f"Log: {log_path} ({len(prev) + 1} registros)")
 

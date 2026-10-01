@@ -90,9 +90,12 @@ def main() -> None:
         equity *= (1 + step)
         print(f"P&L del tramo: {step:+.3%} | equity simulada: {equity:,.2f}")
 
+    invested = (abs(pos_btc) + abs(pos_eth)) * equity   # notional bruto desplegado
+    liquidity = equity - invested
     record = {"run_at": datetime.now().isoformat(timespec="seconds"), "bar": str(bar),
               "exchange": ex.id, "regime": regime, "pos_btc": pos_btc, "pos_eth": pos_eth,
-              "price_btc": price_btc, "price_eth": price_eth, "equity": equity}
+              "price_btc": price_btc, "price_eth": price_eth, "equity": equity,
+              "invested": invested, "liquidity": liquidity}
     pd.concat([prev, pd.DataFrame([record])]).to_csv(log_path, index=False)
     print(f"Log: {log_path} ({len(prev) + 1} registros)")
 

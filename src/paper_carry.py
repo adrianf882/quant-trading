@@ -92,8 +92,12 @@ def main() -> None:
     ret = equity / cap - 1
     estado = "QUIEBRA" if equity <= 0 else f"ret {ret:+.2%}"
     print(f"Funding ult: {fund.iloc[-1]:+.5%}/8h | equity: {equity:,.2f} ({estado})")
+    invested = q * df["spot"].iloc[-1]                    # notional spot (long)
+    margin = invested / FROZEN["margin_leverage"]         # margen en el perp
+    liquidity = equity - invested - margin
     record = {"run_at": datetime.now().isoformat(timespec="seconds"), "bar": str(bar),
-              "exchange": ex_fund.id, "equity": equity, "q": q, "funding": float(fund.iloc[-1])}
+              "exchange": ex_fund.id, "equity": equity, "q": q, "funding": float(fund.iloc[-1]),
+              "invested": invested, "liquidity": liquidity}
     pd.concat([prev, pd.DataFrame([record])]).to_csv(log_path, index=False)
     print(f"Log: {log_path} ({len(prev) + 1} registros)")
 

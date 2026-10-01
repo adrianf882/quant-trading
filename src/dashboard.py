@@ -32,7 +32,18 @@ def build_series(csv_path: Path, label: str, capital: float) -> dict:
             "eq": round(float(df["equity"].iloc[i]), 2)} for i in range(len(df))]
     last = float(df["equity"].iloc[-1])
     status = "QUIEBRA" if last <= 0 else f"{last:,.0f} USD ({cum.iloc[-1]*100:+.1f}%)"
-    return {"label": label, "capital": capital, "points": pts, "status": status}
+    if "invested" in df.columns:
+        inv, liq = float(df["invested"].iloc[-1]), float(df["liquidity"].iloc[-1])
+    elif "pos_eth" in df.columns:  # futuros: notional bruto = (|pos_btc|+|pos_eth|)*equity
+        inv = (abs(df["pos_btc"].iloc[-1]) + abs(df["pos_eth"].iloc[-1])) * last
+        liq = last - inv
+    elif "pos_btc" in df.columns:  # spot: invertido = pos * equity
+        inv = df["pos_btc"].iloc[-1] * last
+        liq = last - inv
+    else:                          # carry u otros: sin datos de precio
+        inv = liq = None
+    return {"label": label, "capital": capital, "points": pts, "status": status,
+            "invested": inv, "liquidity": liq}
 
 
 HTML = """<!doctype html>
@@ -80,10 +91,15 @@ DATA.forEach((_,i)=>draw(i));
 def main() -> None:
     exp = get_paths()["experiments"]
     series = [build_series(exp / f, lab, cap) for f, lab, cap in WALLETS]
+
+    def fmt(v):
+        return f"{v:,.0f} USD" if v is not None else "—"
+
     cards = "".join(
         f'<div class="card"><h2>{s["label"]}</h2>'
         f'<div class="meta">Capital inicial: {s["capital"]:,.0f} USD · '
-        f'Estado: <span class="{"bad" if s["status"]=="QUIEBRA" else "ok"}">{s["status"]}</span></div>'
+        f'Equity: <span class="{"bad" if s["status"]=="QUIEBRA" else "ok"}">{s["status"]}</span><br>'
+        f'Invertido: <b>{fmt(s["invested"])}</b> · Liquidez: <b>{fmt(s["liquidity"])}</b></div>'
         f'<canvas id="c{i}"></canvas></div>'
         for i, s in enumerate(series))
     out = get_paths()["root"] / "docs" / "index.html"
