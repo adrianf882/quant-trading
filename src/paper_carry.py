@@ -7,6 +7,7 @@ Uso:
     py -m src.paper_carry
 """
 import sys
+import time
 from datetime import datetime
 
 import ccxt
@@ -18,19 +19,22 @@ from .paper import OHLCV
 FROZEN = {"symbol": "BTC/USDT", "swap": "BTC/USDT:USDT", "timeframe": "8h",
           "initial_capital": 1000.0, "spot_fee": 0.001, "perp_fee": 0.0005,
           "margin_leverage": 3}
-EXCHANGES = ["binanceusdm", "bybit"]
+EXCHANGES = ["binanceusdm", "bybit", "okx", "kucoinfutures"]
 
 
 def detect_perp_exchange(swap: str):
     errors = []
     for ex_id in EXCHANGES:
-        try:
-            ex = getattr(ccxt, ex_id)({"enableRateLimit": True,
-                                       "options": {"defaultType": "swap"}})
-            if ex.fetch_funding_rate_history(swap, limit=3):
-                return ex
-        except Exception as err:  # noqa: BLE001
-            errors.append(f"{ex_id}: {type(err).__name__}")
+        for attempt in range(2):
+            try:
+                ex = getattr(ccxt, ex_id)({"enableRateLimit": True,
+                                           "options": {"defaultType": "swap"}})
+                if ex.fetch_funding_rate_history(swap, limit=3):
+                    return ex
+                break
+            except Exception as err:  # noqa: BLE001
+                errors.append(f"{ex_id}: {type(err).__name__}")
+                time.sleep(1.5)
     raise RuntimeError("Ningun exchange de perp respondio: " + ", ".join(errors))
 
 
@@ -98,4 +102,8 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except Exception as err:  # noqa: BLE001
+        print(f"Carry no disponible ahora ({type(err).__name__}: {err}). No bloquea el resto.")
+        sys.exit(0)

@@ -28,6 +28,7 @@ jobs:
       - name: Paper spot (tendencia 1d)
         run: python -m src.paper_spot
       - name: Paper carry (funding)
+        continue-on-error: true
         run: python -m src.paper_carry
       - name: Generar dashboard
         run: python -m src.dashboard
