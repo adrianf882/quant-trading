@@ -64,7 +64,8 @@ function draw(i){{
     data:{{labels:d.points.map(p=>p.t), datasets:[{{
       label:'retorno acumulado %', data:d.points.map(p=>p.v),
       borderColor: i===0?'#7aa2f7':(i===1?'#4ec9b0':'#e0af68'),
-      backgroundColor:'transparent', borderWidth:2, pointRadius:0, tension:.15}}]}},
+      backgroundColor:'transparent', borderWidth:2,
+      pointRadius: d.points.length<80?3:0, pointBackgroundColor:'#e6e6e6', tension:.15}}]}},
     options:{{responsive:true, plugins:{{legend:{{labels:{{color:'#e6e6e6'}}}},
       tooltip:{{callbacks:{{label:x=>x.parsed.y.toFixed(2)+'%'}}}}}},
       scales:{{x:{{ticks:{{color:'#9aa0a6',maxTicksLimit:8}}}},

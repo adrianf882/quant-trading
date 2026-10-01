@@ -14,7 +14,7 @@
 </style></head>
 <body>
 <h1>Paper Trading - billeteras independientes</h1>
-<p class="sub">Generado: 2026-10-01 01:35 UTC · Simulacion (sin dinero real). Cada billetera arranca con su propio capital.</p>
+<p class="sub">Generado: 2026-10-01 02:09 UTC · Simulacion (sin dinero real). Cada billetera arranca con su propio capital.</p>
 <div class="grid"><div class="card"><h2>B-Kalman (futuros 4h)</h2><div class="meta">Capital inicial: 1,000 USD · Estado: <span class="ok">1,000 USD (+0.0%)</span></div><canvas id="c0"></canvas></div><div class="card"><h2>SPOT trend 1d</h2><div class="meta">Capital inicial: 100 USD · Estado: <span class="ok">100 USD (+0.0%)</span></div><canvas id="c1"></canvas></div><div class="card"><h2>Carry de funding (delta-neutral)</h2><div class="meta">Capital inicial: 1,000 USD · Estado: <span class="ok">999 USD (-0.1%)</span></div><canvas id="c2"></canvas></div></div>
 <script>
 const DATA = [{"label": "B-Kalman (futuros 4h)", "capital": 1000.0, "points": [{"t": "2026-09-30 20:00:00+00:00", "v": 0.0, "eq": 1000.0}], "status": "1,000 USD (+0.0%)"}, {"label": "SPOT trend 1d", "capital": 100.0, "points": [{"t": "2026-09-30 00:00:00+00:00", "v": 0.0, "eq": 100.0}], "status": "100 USD (+0.0%)"}, {"label": "Carry de funding (delta-neutral)", "capital": 1000.0, "points": [{"t": "2026-10-01 00:00:00+00:00", "v": -0.113, "eq": 998.88}], "status": "999 USD (-0.1%)"}];
@@ -27,7 +27,8 @@ function draw(i){
     data:{labels:d.points.map(p=>p.t), datasets:[{
       label:'retorno acumulado %', data:d.points.map(p=>p.v),
       borderColor: i===0?'#7aa2f7':(i===1?'#4ec9b0':'#e0af68'),
-      backgroundColor:'transparent', borderWidth:2, pointRadius:0, tension:.15}]},
+      backgroundColor:'transparent', borderWidth:2,
+      pointRadius: d.points.length<80?3:0, pointBackgroundColor:'#e6e6e6', tension:.15}]},
     options:{responsive:true, plugins:{legend:{labels:{color:'#e6e6e6'}},
       tooltip:{callbacks:{label:x=>x.parsed.y.toFixed(2)+'%'}}},
       scales:{x:{ticks:{color:'#9aa0a6',maxTicksLimit:8}},
