@@ -4,23 +4,25 @@
 <title>Quant Trading - Billeteras (paper)</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <style>
-  body{font-family:system-ui,Arial,sans-serif;background:#0f1117;color:#e6e6e6;margin:0;padding:24px}
-  h1{font-size:20px;font-weight:600} .sub{color:#9aa0a6;font-size:13px;margin-top:-8px}
-  .grid{display:grid;grid-template-columns:1fr;gap:20px;max-width:900px;margin:auto}
+  *{box-sizing:border-box} body{font-family:system-ui,Arial,sans-serif;background:#0f1117;
+    color:#e6e6e6;margin:0;padding:20px}
+  h1{font-size:20px;font-weight:600;margin:0 0 2px} .sub{color:#9aa0a6;font-size:13px;margin:0 0 16px}
+  .grid{display:grid;grid-template-columns:1fr;gap:18px;max-width:920px;margin:0 auto}
   .card{background:#171a21;border:1px solid #262a33;border-radius:12px;padding:16px}
-  .card h2{font-size:15px;margin:0 0 4px} .meta{color:#9aa0a6;font-size:12px;margin-bottom:10px}
+  .card h2{font-size:15px;margin:0 0 4px} .meta{color:#9aa0a6;font-size:12px;margin-bottom:10px;line-height:1.5}
   .bad{color:#f7768e;font-weight:700} .ok{color:#9ece6a;font-weight:700}
-  canvas{max-height:300px}
+  .chartbox{position:relative;width:100%;height:260px}
+  @media(min-width:760px){.grid{grid-template-columns:1fr}}
 </style></head>
 <body>
 <h1>Paper Trading - billeteras independientes</h1>
-<p class="sub">Generado: 2026-10-01 17:57 UTC · Simulacion (sin dinero real). Cada billetera arranca con su propio capital.</p>
-<div class="grid"><div class="card"><h2>B-Kalman (futuros 4h)</h2><div class="meta">Capital inicial: 1,000 USD · Equity: <span class="ok">1,000 USD (+0.0%)</span><br>Invertido: <b>0 USD</b> · Liquidez: <b>1,000 USD</b></div><canvas id="c0"></canvas></div><div class="card"><h2>SPOT trend 1d</h2><div class="meta">Capital inicial: 100 USD · Equity: <span class="ok">100 USD (+0.0%)</span><br>Invertido: <b>33 USD</b> · Liquidez: <b>67 USD</b></div><canvas id="c1"></canvas></div><div class="card"><h2>Carry de funding (delta-neutral)</h2><div class="meta">Capital inicial: 1,000 USD · Equity: <span class="ok">999 USD (-0.1%)</span><br>Invertido: <b>756 USD</b> · Liquidez: <b>0 USD</b></div><canvas id="c2"></canvas></div></div>
+<p class="sub">Generado: 2026-10-01 18:31 UTC · Simulacion (sin dinero real) · escala Y comun a los 3 graficos.</p>
+<div class="grid"><div class="card"><h2>B-Kalman (futuros 4h)</h2><div class="meta">Capital inicial: 1,000 USD · Equity: <span class="ok">1,000 USD (+0.0%)</span><br>Invertido: <b>0 USD</b> · Liquidez: <b>1,000 USD</b></div><div class="chartbox"><canvas id="c0"></canvas></div></div><div class="card"><h2>SPOT trend 1d</h2><div class="meta">Capital inicial: 100 USD · Equity: <span class="ok">100 USD (+0.0%)</span><br>Invertido: <b>33 USD</b> · Liquidez: <b>67 USD</b></div><div class="chartbox"><canvas id="c1"></canvas></div></div><div class="card"><h2>Carry de funding (delta-neutral)</h2><div class="meta">Capital inicial: 1,000 USD · Equity: <span class="ok">999 USD (-0.1%)</span><br>Invertido: <b>999 USD</b> · Liquidez: <b>0 USD</b></div><div class="chartbox"><canvas id="c2"></canvas></div></div></div>
 <script>
-const DATA = [{"label": "B-Kalman (futuros 4h)", "capital": 1000.0, "points": [{"t": "2026-09-30 20:00:00+00:00", "v": 0.0, "eq": 1000.0}, {"t": "2026-10-01 00:00:00+00:00", "v": 0.0, "eq": 1000.0}, {"t": "2026-10-01 08:00:00+00:00", "v": 0.0, "eq": 1000.0}, {"t": "2026-10-01 12:00:00+00:00", "v": 0.0, "eq": 1000.0}], "status": "1,000 USD (+0.0%)", "invested": 0.0, "liquidity": 1000.0}, {"label": "SPOT trend 1d", "capital": 100.0, "points": [{"t": "2026-09-30 00:00:00+00:00", "v": 0.0, "eq": 100.0}], "status": "100 USD (+0.0%)", "invested": 33.33333333333333, "liquidity": 66.66666666666667}, {"label": "Carry de funding (delta-neutral)", "capital": 1000.0, "points": [{"t": "2026-10-01 00:00:00+00:00", "v": -0.113, "eq": 998.88}, {"t": "2026-10-01 08:00:00+00:00", "v": -0.111, "eq": 998.89}, {"t": "2026-10-01 16:00:00+00:00", "v": -0.106, "eq": 998.94}], "status": "999 USD (-0.1%)", "invested": 756.223698203649, "liquidity": 0.0}];
+const DATA = [{"label": "B-Kalman (futuros 4h)", "capital": 1000.0, "points": [{"t": "2026-09-30 20:00:00+00:00", "v": 0.0}, {"t": "2026-10-01 00:00:00+00:00", "v": 0.0}, {"t": "2026-10-01 08:00:00+00:00", "v": 0.0}, {"t": "2026-10-01 12:00:00+00:00", "v": 0.0}], "status": "1,000 USD (+0.0%)", "invested": 0.0, "liquidity": 1000.0}, {"label": "SPOT trend 1d", "capital": 100.0, "points": [{"t": "2026-09-30 00:00:00+00:00", "v": 0.0}], "status": "100 USD (+0.0%)", "invested": 33.33333333333333, "liquidity": 66.66666666666667}, {"label": "Carry de funding (delta-neutral)", "capital": 1000.0, "points": [{"t": "2026-10-01 00:00:00+00:00", "v": -0.113}, {"t": "2026-10-01 08:00:00+00:00", "v": -0.111}, {"t": "2026-10-01 16:00:00+00:00", "v": -0.106}], "status": "999 USD (-0.1%)", "invested": 998.9436853080432, "liquidity": 0.0}];
+const YMIN = -0.12, YMAX = 0.01;
 function draw(i){
-  const d = DATA[i];
-  const el = document.getElementById('c'+i);
+  const d = DATA[i], el = document.getElementById('c'+i);
   if(!d.points.length){ el.parentElement.insertAdjacentHTML('beforeend','<p class="meta">Sin datos aun.</p>'); return; }
   new Chart(el, {
     type:'line',
@@ -29,10 +31,11 @@ function draw(i){
       borderColor: i===0?'#7aa2f7':(i===1?'#4ec9b0':'#e0af68'),
       backgroundColor:'transparent', borderWidth:2,
       pointRadius: d.points.length<80?3:0, pointBackgroundColor:'#e6e6e6', tension:.15}]},
-    options:{responsive:true, plugins:{legend:{labels:{color:'#e6e6e6'}},
-      tooltip:{callbacks:{label:x=>x.parsed.y.toFixed(2)+'%'}}},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#e6e6e6'}},
+        tooltip:{callbacks:{label:x=>x.parsed.y.toFixed(2)+'%'}}},
       scales:{x:{ticks:{color:'#9aa0a6',maxTicksLimit:8}},
-        y:{ticks:{color:'#9aa0a6',callback:v=>v+'%'}}}}
+        y:{min:YMIN, max:YMAX, ticks:{color:'#9aa0a6',callback:v=>v+'%'}}}}
   });
 }
 DATA.forEach((_,i)=>draw(i));
