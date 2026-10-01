@@ -33,13 +33,14 @@ def build_series(csv_path: Path, label: str, capital: float) -> dict:
     last = float(df["equity"].iloc[-1])
     status = "QUIEBRA" if last <= 0 else f"{last:,.0f} USD ({cum.iloc[-1]*100:+.1f}%)"
     if "invested" in df.columns:
-        inv, liq = float(df["invested"].iloc[-1]), float(df["liquidity"].iloc[-1])
+        inv = float(df["invested"].iloc[-1])
+        liq = max(0.0, float(df["liquidity"].iloc[-1]))
     elif "pos_eth" in df.columns:  # futuros: notional bruto = (|pos_btc|+|pos_eth|)*equity
         inv = (abs(df["pos_btc"].iloc[-1]) + abs(df["pos_eth"].iloc[-1])) * last
-        liq = last - inv
+        liq = max(0.0, last - inv)
     elif "pos_btc" in df.columns:  # spot: invertido = pos * equity
         inv = df["pos_btc"].iloc[-1] * last
-        liq = last - inv
+        liq = max(0.0, last - inv)
     else:                          # carry u otros: sin datos de precio
         inv = liq = None
     return {"label": label, "capital": capital, "points": pts, "status": status,
