@@ -38,11 +38,11 @@ def detect_perp_exchange(swap: str):
     raise RuntimeError("Ningun exchange de perp respondio: " + ", ".join(errors))
 
 
-def fetch_8h(ex, symbol, n=200):
-    rows = ex.fetch_ohlcv(symbol, FROZEN["timeframe"], limit=n)
+def fetch_8h(ex, symbol, n=1000):
+    rows = ex.fetch_ohlcv(symbol, "1h", limit=n)
     df = pd.DataFrame(rows, columns=["ts", *OHLCV])[["ts", "close"]]
     df["ts"] = pd.to_datetime(df["ts"], unit="ms", utc=True)
-    return df.set_index("ts")["close"]
+    return df.set_index("ts")["close"].resample("8h").last().dropna()
 
 
 def fetch_funding(ex, swap, n=500):
